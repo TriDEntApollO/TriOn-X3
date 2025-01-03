@@ -1,5 +1,5 @@
 #include <Wire.h>
-#include <Adafruit_GFX.h>      // Core graphics library
+#include <Adafruit_GFX.h>      // Core graphics library0x0000
 #include <Adafruit_ST7735.h>   // For ST7735 display
 #include "MPU6050_6Axis_MotionApps20.h" // MPU6050 DMP library from jrowberg/i2cdevlib
 
@@ -20,13 +20,24 @@ DC/RS/A0  ->  GPIO2
 MOSI/SDA  ->  GPIO23
 SCK/SCL   ->  GPIO18
 LED       ->  3.3V
+
 */
 
+// Define Colors
+#define	RED     0xF800
+#define	BLUE    0x08BC
+#define	GREEN   0x07E0
+#define	BLACK   0x0000
+#define WHITE   0xFFFF
+#define	ORANGE  0xFB20
+#define VIOLET  0xD01F
+#define GREEN2  0x87E0
+
 // Define ST7735 pins
-#define ST7735_CS     5  // Chip select
-#define ST7735_RST    4  // Reset
-#define ST7735_DC     2  // Data/Command
-Adafruit_ST7735 tft = Adafruit_ST7735(ST7735_CS, ST7735_DC, ST7735_RST);
+#define CS     5  // Chip select
+#define RST    4  // Reset
+#define DC     2  // Data/Command
+Adafruit_ST7735 tft = Adafruit_ST7735(CS, DC, RST);
 
 // MPU6050 instance
 MPU6050 mpu;
@@ -47,9 +58,8 @@ float ypr[3];           // [yaw, pitch, roll] in radians
 int padX = 22; // X-padding for text
 int padY = 5; // Y-padding for text
 
-// Center coordinates for the cube
-int xOrigin = 1/2;
-int yOrigin = 3/6;
+int xOrigin;
+int yOrigin;
 
 // Cube size and projection scale
 float height = 20;
@@ -81,74 +91,20 @@ float pitch = 0;
 
 void setup() {
   Serial.begin(115200);
+  Serial.println(ST7735_ORANGE);
   Wire.begin(); // Initialize I2C
 
   // Initialize ST7735 display
   tft.initR(INITR_BLACKTAB);
   tft.setRotation(0); // Set orientation to portrait
-  tft.fillScreen(ST7735_BLACK);
-  tft.setTextSize(1);
 
+  showSplashScreen();
+  
+  // Set center origin coordinates for the cube
   xOrigin = tft.width() * 1/2;
   yOrigin = tft.height() * 3/6;
 
-  // Initialize MPU6050
-  mpu.initialize();
-  if (!mpu.testConnection()) {
-    Serial.println("MPU6050 not found, check wiring!");
-    tft.setTextColor(ST7735_WHITE, ST7735_RED);
-    tft.setCursor(44, tft.height() * 4/9);
-    tft.println(" ERROR ");
-    tft.setTextColor(ST7735_RED);
-    tft.setCursor(10, tft.height() * 5/9);
-    tft.println("MPU6050 not found!");
-    while (1);
-  }
-
-  tft.setTextColor(ST7735_WHITE, 0x08bc);
-  tft.setCursor(20, tft.height() * 3/10);
-  tft.println(" Startup Info ");
-  tft.setTextColor(ST7735_WHITE);
-  tft.setCursor(13, tft.height() * 4/10);
-  tft.println("MPU6050 Detected!");
-
-  // Load and configure the DMP
-  devStatus = mpu.dmpInitialize();
-
-  // Check DMP initialization
-  if (devStatus != 0) {
-    Serial.print("DMP Initialization failed (code ");
-    Serial.print(devStatus);
-    Serial.println(")");
-    tft.fillScreen(ST7735_BLACK);
-    tft.setTextColor(ST7735_WHITE, ST7735_RED);
-    tft.setCursor(44, tft.height() * 4/9);
-    tft.println(" ERROR ");
-    tft.setTextColor(ST7735_RED);
-    tft.setCursor(15, tft.height() * 5/9);
-    tft.println("DMP INIT Failed!");
-    while (1);
-  }
-
-  tft.setTextColor(ST7735_ORANGE);
-  tft.setCursor(6, tft.height() * 5/10);
-  tft.println("Calibrating MPU6050");
-
-  mpu.CalibrateAccel(6);  // Calibration Time: generate offsets and calibrate our MPU6050
-  mpu.CalibrateGyro(6);
-  mpu.PrintActiveOffsets();
-
-  // Enable DMP
-  mpu.setDMPEnabled(true);
-  dmpReady = true;
-  packetSize = mpu.dmpGetFIFOPacketSize();
-
-  Serial.println("MPU6050 initialized successfully with DMP.");
-  tft.setTextColor(ST7735_GREEN);
-  tft.setCursor(12, tft.height() * 6/10);
-  tft.println("MPU6050 DMP Ready");
-  delay(1500);
-
+  initMPU();
   initInfo();
 }
 
@@ -213,9 +169,9 @@ bool detectMotion() {
 void drawCube() {
   // Remove previous cube from screen by drawing black lines over it
   for (int i = 0; i < 4; i++) {
-    tft.drawLine(cubeProjection[i][0], cubeProjection[i][1], cubeProjection[(i + 1) % 4][0], cubeProjection[(i + 1) % 4][1], ST7735_BLACK);
-    tft.drawLine(cubeProjection[i + 4][0], cubeProjection[i + 4][1], cubeProjection[((i + 1) % 4) + 4][0], cubeProjection[((i + 1) % 4) + 4][1], ST7735_BLACK);
-    tft.drawLine(cubeProjection[i][0], cubeProjection[i][1], cubeProjection[i + 4][0], cubeProjection[i + 4][1], ST7735_BLACK);
+    tft.drawLine(cubeProjection[i][0], cubeProjection[i][1], cubeProjection[(i + 1) % 4][0], cubeProjection[(i + 1) % 4][1], BLACK);
+    tft.drawLine(cubeProjection[i + 4][0], cubeProjection[i + 4][1], cubeProjection[((i + 1) % 4) + 4][0], cubeProjection[((i + 1) % 4) + 4][1], BLACK);
+    tft.drawLine(cubeProjection[i][0], cubeProjection[i][1], cubeProjection[i + 4][0], cubeProjection[i + 4][1], BLACK);
   }
 
   // Rotate the cubeVertices based on roll, pitch, and yaw
@@ -246,20 +202,20 @@ void drawCube() {
 
   // Draw cube edges
   for (int i = 0; i < 4; i++) {
-    tft.drawLine(cubeProjection[i][0], cubeProjection[i][1], cubeProjection[(i + 1) % 4][0], cubeProjection[(i + 1) % 4][1], ST7735_WHITE);
-    tft.drawLine(cubeProjection[i + 4][0], cubeProjection[i + 4][1], cubeProjection[((i + 1) % 4) + 4][0], cubeProjection[((i + 1) % 4) + 4][1], ST7735_WHITE);
-    tft.drawLine(cubeProjection[i][0], cubeProjection[i][1], cubeProjection[i + 4][0], cubeProjection[i + 4][1], ST7735_WHITE);
+    tft.drawLine(cubeProjection[i][0], cubeProjection[i][1], cubeProjection[(i + 1) % 4][0], cubeProjection[(i + 1) % 4][1], WHITE);
+    tft.drawLine(cubeProjection[i + 4][0], cubeProjection[i + 4][1], cubeProjection[((i + 1) % 4) + 4][0], cubeProjection[((i + 1) % 4) + 4][1], WHITE);
+    tft.drawLine(cubeProjection[i][0], cubeProjection[i][1], cubeProjection[i + 4][0], cubeProjection[i + 4][1], WHITE);
   }
 }
 
 void drawAxes() {
   // Remove previous axes from screen by drawing black lines over it
-  tft.drawLine(xOrigin, yOrigin, axesProjection[0][0], axesProjection[0][1], ST7735_BLACK);
-  tft.drawChar(axesProjection[0][0] - 8, axesProjection[0][1] - 3, 'X', ST7735_BLACK, ST7735_BLACK, 1);
-  tft.drawLine(xOrigin, yOrigin, axesProjection[1][0], axesProjection[1][1], ST7735_BLACK);
-  tft.drawChar(axesProjection[1][0] - 2, axesProjection[1][1] - 10, 'Y', ST7735_BLACK, ST7735_BLACK, 1);
-  tft.drawLine(xOrigin, yOrigin, axesProjection[2][0], axesProjection[2][1], ST7735_BLACK);
-  tft.drawChar(axesProjection[2][0] + 3, axesProjection[2][1] + 3, 'Z', ST7735_BLACK, ST7735_BLACK, 1);
+  tft.drawLine(xOrigin, yOrigin, axesProjection[0][0], axesProjection[0][1], BLACK);
+  tft.drawChar(axesProjection[0][0] - 8, axesProjection[0][1] - 3, 'X', BLACK, BLACK, 1);
+  tft.drawLine(xOrigin, yOrigin, axesProjection[1][0], axesProjection[1][1], BLACK);
+  tft.drawChar(axesProjection[1][0] - 2, axesProjection[1][1] - 10, 'Y', BLACK, BLACK, 1);
+  tft.drawLine(xOrigin, yOrigin, axesProjection[2][0], axesProjection[2][1], BLACK);
+  tft.drawChar(axesProjection[2][0] + 3, axesProjection[2][1] + 3, 'Z', BLACK, BLACK, 1);
 
   // Rotate the axes vertices based on roll, pitch, and yaw
   for (int i = 0; i < 3; i++) {
@@ -288,14 +244,14 @@ void drawAxes() {
   }
 
   // Draw X-axis
-  tft.drawLine(xOrigin, yOrigin, axesProjection[0][0], axesProjection[0][1], ST7735_RED);
-  tft.drawChar(axesProjection[0][0] - 8, axesProjection[0][1] - 3, 'X', ST7735_RED, ST7735_BLACK, 1);
+  tft.drawLine(xOrigin, yOrigin, axesProjection[0][0], axesProjection[0][1], RED);
+  tft.drawChar(axesProjection[0][0] - 8, axesProjection[0][1] - 3, 'X', RED, BLACK, 1);
   // Draw Y-axis
-  tft.drawLine(xOrigin, yOrigin, axesProjection[1][0], axesProjection[1][1], ST7735_GREEN);
-  tft.drawChar(axesProjection[1][0] - 2, axesProjection[1][1] - 10, 'Y', ST7735_GREEN, ST7735_BLACK, 1);
+  tft.drawLine(xOrigin, yOrigin, axesProjection[1][0], axesProjection[1][1], GREEN);
+  tft.drawChar(axesProjection[1][0] - 2, axesProjection[1][1] - 10, 'Y', GREEN, BLACK, 1);
   // Draw Z-axis
-  tft.drawLine(xOrigin, yOrigin, axesProjection[2][0], axesProjection[2][1], ST7735_BLUE);
-  tft.drawChar(axesProjection[2][0] + 3, axesProjection[2][1] + 3, 'Z', ST7735_BLUE, ST7735_BLACK, 1);
+  tft.drawLine(xOrigin, yOrigin, axesProjection[2][0], axesProjection[2][1], BLUE);
+  tft.drawChar(axesProjection[2][0] + 3, axesProjection[2][1] + 3, 'Z', BLUE, BLACK, 1);
 }
 
 void updateRotationInfo() {
@@ -303,32 +259,32 @@ void updateRotationInfo() {
   int xPos = padX + 42;
   tft.setTextSize(1);
   tft.setCursor(xPos, yPos);
-  tft.fillRect(xPos, yPos, 100, 10, ST7735_BLACK);
-  tft.setTextColor(ST7735_WHITE);
+  tft.fillRect(xPos, yPos, 100, 10, BLACK);
+  tft.setTextColor(WHITE);
   tft.print(radianToDegree(yaw), 1);
   tft.print(" deg");
 
   yPos += 10;
   tft.setCursor(xPos, yPos);
-  tft.fillRect(xPos, yPos, 100, 10, ST7735_BLACK);
-  tft.setTextColor(ST7735_WHITE);
+  tft.fillRect(xPos, yPos, 100, 10, BLACK);
+  tft.setTextColor(WHITE);
   tft.print(radianToDegree(roll), 1);
   tft.print(" deg");
 
   yPos += 10;
   tft.setCursor(xPos, yPos);
-  tft.fillRect(xPos, yPos, 100, 10, ST7735_BLACK);
-  tft.setTextColor(ST7735_WHITE);
+  tft.fillRect(xPos, yPos, 100, 10, BLACK);
+  tft.setTextColor(WHITE);
   tft.print(radianToDegree(pitch), 1);
   tft.print(" deg");
 }
 
 void initInfo() {
-  tft.fillScreen(ST7735_BLACK);
+  tft.fillScreen(BLACK);
 
   // Display Title
   tft.setTextSize(1);
-  tft.setTextColor(ST7735_WHITE, ST7735_RED);
+  tft.setTextColor(WHITE, RED);
   tft.setCursor(8, padY);
   tft.println(" 3-Axis Orientaion ");
   tft.setCursor(32, padY + 10); 
@@ -336,24 +292,109 @@ void initInfo() {
 
   int yPos = tft.height() - 35;
   tft.setCursor(padX, yPos);
-  tft.setTextColor(ST7735_BLUE);
+  tft.setTextColor(BLUE);
   tft.print("Yaw:   ");
-  tft.setTextColor(ST7735_WHITE);
+  tft.setTextColor(WHITE);
   tft.print("0.0 deg");
 
   yPos += 10;
   tft.setCursor(padX, yPos);
-  tft.setTextColor(ST7735_GREEN);
+  tft.setTextColor(GREEN);
   tft.print("Roll:  ");
-  tft.setTextColor(ST7735_WHITE);
+  tft.setTextColor(WHITE);
   tft.print("0.0 deg");
 
   yPos += 10;
   tft.setCursor(padX, yPos);
-  tft.setTextColor(ST7735_RED);
+  tft.setTextColor(RED);
   tft.print("Pitch: ");
-  tft.setTextColor(ST7735_WHITE);
+  tft.setTextColor(WHITE);
   tft.print("0.0 deg");
+}
+
+void showSplashScreen() {
+  // Display logo or title
+  tft.fillScreen(ST7735_BLACK);
+  tft.setTextColor(WHITE);
+  tft.setTextSize(2);
+  tft.setCursor(17, 40);
+  tft.print("TriOn-X3" );
+
+  // Dsiplay version
+  tft.setTextColor(GREEN);
+  tft.setTextSize(1);
+  tft.setCursor(25, 120);
+  tft.print("version 1.1.0");
+  
+  delay(2000);
+
+  // Clear screen and init text size
+  tft.fillScreen(ST7735_BLACK);
+  tft.setTextSize(1);
+}
+
+void initMPU() {
+  // Initialize MPU6050
+  mpu.initialize();
+  if (!mpu.testConnection()) {
+    Serial.println("MPU6050 not found, check wiring!");
+    tft.setTextSize(2);
+    tft.setTextColor(WHITE, RED);
+    tft.setCursor(22, tft.height() * 4/10);
+    tft.println(" ERROR ");
+    tft.setTextSize(1);
+    tft.setTextColor(RED);
+    tft.setCursor(10, tft.height() * 6/10);
+    tft.println("MPU6050 not found!");
+    while (1);
+  }
+  
+  tft.setTextSize(1);
+  tft.setTextColor(WHITE, BLUE);
+  tft.setCursor(20, tft.height() * 2/10);
+  tft.println(" Startup Info ");
+  tft.setTextColor(VIOLET);
+  tft.setCursor(13, tft.height() * 4/10);
+  tft.println("MPU6050 Detected!");
+
+  // Load and configure the DMP
+  devStatus = mpu.dmpInitialize();
+
+  // Check DMP initialization
+  if (devStatus != 0) {
+    Serial.print("DMP Initialization failed (code ");
+    Serial.print(devStatus);
+    Serial.println(")");
+    tft.fillScreen(BLACK);
+    tft.setTextSize(2);
+    tft.setTextColor(WHITE, RED);
+    tft.setCursor(22, tft.height() * 4/10);
+    tft.println(" ERROR ");
+    tft.setTextSize(1);
+    tft.setTextColor(RED);
+    tft.setCursor(15, tft.height() * 6/10);
+    tft.println("DMP INIT Failed!");
+    while (1);
+  }
+
+  tft.setTextColor(ORANGE);
+  tft.setCursor(6, tft.height() * 5/10);
+  tft.println("Calibrating MPU6050");
+
+  mpu.CalibrateAccel(6);  // Calibration Time: generate offsets and calibrate our MPU6050
+  mpu.CalibrateGyro(6);
+  mpu.PrintActiveOffsets();
+
+  // Enable DMP
+  mpu.setDMPEnabled(true);
+  dmpReady = true;
+  packetSize = mpu.dmpGetFIFOPacketSize();
+
+  Serial.println("MPU6050 initialized successfully with DMP.");
+  tft.setTextColor(GREEN2);
+  tft.setCursor(12, tft.height() * 6/10);
+  tft.println("MPU6050 DMP Ready");
+  delay(1500);
 }
 
 float radianToDegree(float rad) {
