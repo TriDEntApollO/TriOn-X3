@@ -345,7 +345,6 @@ void drawLogo() {
 
   tft.drawLine(64 * scale + offsetX, 80 * scale + offsetY, axes[0][0] * scale + offsetX, axes[0][1] * scale + offsetY, RED);
   tft.drawLine(64 * scale + offsetX, 80 * scale + offsetY, axes[1][0] * scale + offsetX, axes[1][1] * scale + offsetY, GREEN);
-  tft.drawLine(64 * scale + offsetX, 80 * scale + offsetY, axes[2][0] * scale + offsetX, axes[2][1] * scale + offsetY, BLUE);
   tft.drawLine(cube[0][0] * scale + offsetX, cube[0][1] * scale + offsetY, cube[1][0] * scale + offsetX, cube[1][1] * scale + offsetY, WHITE);
   tft.drawLine(cube[1][0] * scale + offsetX, cube[1][1] * scale + offsetY, cube[2][0] * scale + offsetX, cube[2][1] * scale + offsetY, WHITE);
   tft.drawLine(cube[2][0] * scale + offsetX, cube[2][1] * scale + offsetY, cube[3][0] * scale + offsetX, cube[3][1] * scale + offsetY, WHITE);
@@ -358,7 +357,11 @@ void drawLogo() {
   tft.drawLine(cube[1][0] * scale + offsetX, cube[1][1] * scale + offsetY, cube[5][0] * scale + offsetX, cube[5][1] * scale + offsetY, WHITE);
   tft.drawLine(cube[2][0] * scale + offsetX, cube[2][1] * scale + offsetY, cube[6][0] * scale + offsetX, cube[6][1] * scale + offsetY, WHITE);
   tft.drawLine(cube[3][0] * scale + offsetX, cube[3][1] * scale + offsetY, cube[7][0] * scale + offsetX, cube[7][1] * scale + offsetY, WHITE);
+  tft.drawLine(64 * scale + offsetX, 80 * scale + offsetY, axes[2][0] * scale + offsetX, axes[2][1] * scale + offsetY, BLUE);
+  tft.drawLine( axes[0][0] * scale + offsetX, axes[0][1] * scale + offsetY, (64 * scale + offsetX) * 0.9, 80 * scale + offsetY, RED);
+  tft.drawLine(64 * scale + offsetX, 80 * scale + offsetY, axes[1][0] * scale + offsetX, (axes[1][1] * scale + offsetY) * 1.17, GREEN);
 }
+
 void initMPU() {
   // Initialize MPU6050
   mpu.initialize();
