@@ -313,12 +313,15 @@ void initInfo() {
 }
 
 void showSplashScreen() {
-  // Display logo or title
+  // Display name
   tft.fillScreen(ST7735_BLACK);
   tft.setTextColor(WHITE);
   tft.setTextSize(2);
-  tft.setCursor(17, 40);
+  tft.setCursor(17, 30);
   tft.print("TriOn-X3" );
+
+  // Dsiplay logo
+  drawLogo();
 
   // Dsiplay version
   tft.setTextColor(GREEN);
@@ -333,6 +336,29 @@ void showSplashScreen() {
   tft.setTextSize(1);
 }
 
+void drawLogo() {
+  int offsetX = 12;
+  int offsetY = 18;
+  float scale = 0.8;
+  float cube[8][2] =  { {58.66, 59.50}, {80.74, 67.95}, {80.74, 92.05}, {58.66, 100.50}, {49.93, 69.88}, {65.96, 72.48}, {65.96, 87.52}, {49.93, 90.12}};
+  float axes[3][2] = { {36.95, 80.00}, {64.00, 51.00}, {88.97, 80.00}};
+
+  tft.drawLine(cube[0][0] * scale + offsetX, cube[0][1] * scale + offsetY, cube[1][0] * scale + offsetX, cube[1][1] * scale + offsetY, WHITE);
+  tft.drawLine(cube[1][0] * scale + offsetX, cube[1][1] * scale + offsetY, cube[2][0] * scale + offsetX, cube[2][1] * scale + offsetY, WHITE);
+  tft.drawLine(cube[2][0] * scale + offsetX, cube[2][1] * scale + offsetY, cube[3][0] * scale + offsetX, cube[3][1] * scale + offsetY, WHITE);
+  tft.drawLine(cube[3][0] * scale + offsetX, cube[3][1] * scale + offsetY, cube[0][0] * scale + offsetX, cube[0][1] * scale + offsetY, WHITE);
+  tft.drawLine(cube[4][0] * scale + offsetX, cube[4][1] * scale + offsetY, cube[5][0] * scale + offsetX, cube[5][1] * scale + offsetY, WHITE);
+  tft.drawLine(cube[5][0] * scale + offsetX, cube[5][1] * scale + offsetY, cube[6][0] * scale + offsetX, cube[6][1] * scale + offsetY, WHITE);
+  tft.drawLine(cube[6][0] * scale + offsetX, cube[6][1] * scale + offsetY, cube[7][0] * scale + offsetX, cube[7][1] * scale + offsetY, WHITE);
+  tft.drawLine(cube[7][0] * scale + offsetX, cube[7][1] * scale + offsetY, cube[4][0] * scale + offsetX, cube[4][1] * scale + offsetY, WHITE);
+  tft.drawLine(cube[0][0] * scale + offsetX, cube[0][1] * scale + offsetY, cube[4][0] * scale + offsetX, cube[4][1] * scale + offsetY, WHITE);
+  tft.drawLine(cube[1][0] * scale + offsetX, cube[1][1] * scale + offsetY, cube[5][0] * scale + offsetX, cube[5][1] * scale + offsetY, WHITE);
+  tft.drawLine(cube[2][0] * scale + offsetX, cube[2][1] * scale + offsetY, cube[6][0] * scale + offsetX, cube[6][1] * scale + offsetY, WHITE);
+  tft.drawLine(cube[3][0] * scale + offsetX, cube[3][1] * scale + offsetY, cube[7][0] * scale + offsetX, cube[7][1] * scale + offsetY, WHITE);
+  tft.drawLine(64 * scale + offsetX, 80 * scale + offsetY, axes[0][0] * scale + offsetX, axes[0][1] * scale + offsetY, RED);
+  tft.drawLine(64 * scale + offsetX, 80 * scale + offsetY, axes[1][0] * scale + offsetX, axes[1][1] * scale + offsetY, GREEN);
+  tft.drawLine(64 * scale + offsetX, 80 * scale + offsetY, axes[2][0] * scale + offsetX, axes[2][1] * scale + offsetY, BLUE);
+}
 void initMPU() {
   // Initialize MPU6050
   mpu.initialize();
